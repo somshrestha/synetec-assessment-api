@@ -10,10 +10,12 @@ namespace SynetecAssessmentApi.Services
 {
     public class BonusPoolService
     {
+        //TODO: REmove from here
         private readonly AppDbContext _dbContext;
 
         public BonusPoolService()
         {
+            //TODO: Remove from here
             var dbContextOptionBuilder = new DbContextOptionsBuilder<AppDbContext>();
             dbContextOptionBuilder.UseInMemoryDatabase(databaseName: "HrDb");
 
@@ -22,6 +24,7 @@ namespace SynetecAssessmentApi.Services
 
         public async Task<IEnumerable<EmployeeDto>> GetEmployeesAsync()
         {
+            //TODO: Remove from here
             IEnumerable<Employee> employees = await _dbContext
                 .Employees
                 .Include(e => e.Department)
@@ -51,11 +54,13 @@ namespace SynetecAssessmentApi.Services
         public async Task<BonusPoolCalculatorResultDto> CalculateAsync(int bonusPoolAmount, int selectedEmployeeId)
         {
             //load the details of the selected employee using the Id
+            //TODO: Remove from here
             Employee employee = await _dbContext.Employees
                 .Include(e => e.Department)
                 .FirstOrDefaultAsync(item => item.Id == selectedEmployeeId);
 
             //get the total salary budget for the company
+            //TODO: Remove from here
             int totalSalary = (int)_dbContext.Employees.Sum(item => item.Salary);
 
             //calculate the bonus allocation for the employee
