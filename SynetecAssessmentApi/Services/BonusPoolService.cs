@@ -11,8 +11,8 @@ namespace SynetecAssessmentApi.Services
         private readonly IMappingService _mappingService;
         private readonly ICalculationService _calculationService;
 
-        public BonusPoolService(IMappingService mappingService,
-                                IEmployeeService employeeService,
+        public BonusPoolService(IEmployeeService employeeService,
+                                IMappingService mappingService,
                                 ICalculationService calculationService)
         {
             _mappingService = mappingService;
