@@ -1,88 +1,45 @@
-﻿using Microsoft.EntityFrameworkCore;
-using SynetecAssessmentApi.Domain;
-using SynetecAssessmentApi.Dtos;
-using SynetecAssessmentApi.Persistence;
+﻿using SynetecAssessmentApi.Dtos;
+using SynetecAssessmentApi.Services.Interfaces;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace SynetecAssessmentApi.Services
 {
-    public class BonusPoolService
+    public class BonusPoolService :IBonusPoolService
     {
-        //TODO: REmove from here
-        private readonly AppDbContext _dbContext;
+        private readonly IEmployeeService _employeeService;
+        private readonly IMappingService _mappingService;
+        private readonly ICalculationService _calculationService;
 
-        public BonusPoolService()
+        public BonusPoolService(IMappingService mappingService,
+                                IEmployeeService employeeService,
+                                ICalculationService calculationService)
         {
-            //TODO: Remove from here
-            var dbContextOptionBuilder = new DbContextOptionsBuilder<AppDbContext>();
-            dbContextOptionBuilder.UseInMemoryDatabase(databaseName: "HrDb");
-
-            _dbContext = new AppDbContext(dbContextOptionBuilder.Options);
+            _mappingService = mappingService;
+            _employeeService = employeeService;
+            _calculationService = calculationService;
         }
 
         public async Task<IEnumerable<EmployeeDto>> GetEmployeesAsync()
         {
-            //TODO: Remove from here
-            IEnumerable<Employee> employees = await _dbContext
-                .Employees
-                .Include(e => e.Department)
-                .ToListAsync();
+            var employees = await _employeeService.GetEmployeesAsync();
 
-            List<EmployeeDto> result = new List<EmployeeDto>();
-
-            foreach (var employee in employees)
-            {
-                result.Add(
-                    new EmployeeDto
-                    {
-                        Fullname = employee.Fullname,
-                        JobTitle = employee.JobTitle,
-                        Salary = employee.Salary,
-                        Department = new DepartmentDto
-                        {
-                            Title = employee.Department.Title,
-                            Description = employee.Department.Description
-                        }
-                    });
-            }
-
-            return result;
+            return _mappingService.MapEmployeeListToDto(employees);
         }
 
         public async Task<BonusPoolCalculatorResultDto> CalculateAsync(int bonusPoolAmount, int selectedEmployeeId)
         {
             //load the details of the selected employee using the Id
-            //TODO: Remove from here
-            Employee employee = await _dbContext.Employees
-                .Include(e => e.Department)
-                .FirstOrDefaultAsync(item => item.Id == selectedEmployeeId);
+            var employee = await _employeeService.GetEmployeeByIdAsync(selectedEmployeeId);
 
             //get the total salary budget for the company
-            //TODO: Remove from here
-            int totalSalary = (int)_dbContext.Employees.Sum(item => item.Salary);
+            var totalSalary = await _calculationService.GetTotalSalaryOfTotalEmployeesAsync();
 
             //calculate the bonus allocation for the employee
-            decimal bonusPercentage = (decimal)employee.Salary / (decimal)totalSalary;
-            int bonusAllocation = (int)(bonusPercentage * bonusPoolAmount);
+            var bonusPercentage = _calculationService.CalculateEmployeeBonusPercentage(employee.Salary, totalSalary);
+            int bonusAllocation = _calculationService.CalculateEmployeeBonus(bonusPercentage, bonusPoolAmount);
 
-            return new BonusPoolCalculatorResultDto
-            {
-                Employee = new EmployeeDto
-                {
-                    Fullname = employee.Fullname,
-                    JobTitle = employee.JobTitle,
-                    Salary = employee.Salary,
-                    Department = new DepartmentDto
-                    {
-                        Title = employee.Department.Title,
-                        Description = employee.Department.Description
-                    }
-                },
-
-                Amount = bonusAllocation
-            };
+            return _mappingService.MapBonusPoolCalculatorResultToDto(employee, bonusAllocation);
         }
     }
 }

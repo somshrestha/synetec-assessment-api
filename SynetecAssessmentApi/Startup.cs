@@ -8,6 +8,8 @@ using Microsoft.OpenApi.Models;
 using SynetecAssessmentApi.Persistence;
 using SynetecAssessmentApi.Persistence.Interfaces;
 using SynetecAssessmentApi.Persistence.Repositories;
+using SynetecAssessmentApi.Services;
+using SynetecAssessmentApi.Services.Interfaces;
 
 namespace SynetecAssessmentApi
 {
@@ -32,7 +34,14 @@ namespace SynetecAssessmentApi
             services.AddDbContext<AppDbContext>(options =>
                 options.UseInMemoryDatabase(databaseName: "HrDb"));
 
+            //Repositories
             services.AddTransient<IEmployeeRepository, EmployeeRepository>();
+
+            //Services
+            services.AddTransient<IMappingService, MappingService>();
+            services.AddTransient<IEmployeeService, EmployeeService>();
+            services.AddTransient<ICalculationService, CalculationService>();
+            services.AddTransient<IBonusPoolService, BonusPoolService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
